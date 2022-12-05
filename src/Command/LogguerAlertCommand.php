@@ -2,6 +2,8 @@
 
 namespace App\Command;
 
+use App\Repository\ProductRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -9,6 +11,11 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 
 #[AsCommand(
     name: 'app:logguer-alert',
@@ -16,28 +23,52 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 )]
 class LogguerAlertCommand extends Command
 {
+    protected static $defaultName = 'app:logguer-alert';
+
+    private $logguer;
+    private $productRepository;
+    private MailerInterface $mailer;
+
+
+    public function __construct(LoggerInterface $logger, ProductRepository $productRepository, MailerInterface $mailer)
+    {
+        $this->logger = $logger;
+        $this->productRepository = $productRepository;
+        $this->mailer = $mailer;
+
+
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this
-            ->addArgument('arg1', InputArgument::OPTIONAL, 'Argument description')
-            ->addOption('option1', null, InputOption::VALUE_NONE, 'Option description')
+            ->setDescription('Send email if a product is out of stock.')
+            ->setHelp('This command allows you to send email if a product is out of stock.')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io = new SymfonyStyle($input, $output);
-        $arg1 = $input->getArgument('arg1');
+        $products = $this->productRepository->findBy(
+            [
+                'quantity' => 0
+            ]
+        );
+        $message = '';
 
-        if ($arg1) {
-            $io->note(sprintf('You passed an argument: %s', $arg1));
+        foreach ($products as $product) {
+            $message .= 'Product ' . $product->getName() . ' is out of stock.';
+            $this->logger->error('Product ' . $product->getName() . ' is out of stock.');
         }
+        $email = (new Email())
+            ->from('admin@gmail.com')
+            ->to('vendor@gmail.com')
+            ->subject('Product out of stock')
+            ->text($message)
+        ;
 
-        if ($input->getOption('option1')) {
-            // ...
-        }
-
-        $io->success('You have a new command! Now make it your own! Pass --help to see your options.');
+        $this->mailer->send($email);
 
         return Command::SUCCESS;
     }

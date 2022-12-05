@@ -56,7 +56,7 @@ class ProductController extends AbstractController
 
         return $this->json([
             'message' => 'Product found',
-            'product' => json_decode($serializer->serialize($product,'json' ,['groups' => 'product']))
+            'product' => json_decode($serializer->serialize($product,'json' ,['groups' => ['product', 'product_category']]))
             ]
         );
     }
@@ -116,7 +116,7 @@ class ProductController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Product created',
-                    'product' => json_decode($serializer->serialize($product,'json' ,['groups' => 'product']))
+                    'product' => json_decode($serializer->serialize($product,'json' ,['groups' => ['product', 'product_category']]))
                 ],
                 Response::HTTP_CREATED
             );
@@ -170,7 +170,7 @@ class ProductController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Product updated',
-                    'product' => json_decode($serializer->serialize($product,'json' ,['groups' => 'product']))
+                    'product' => json_decode($serializer->serialize($product,'json' ,['groups' => ['product', 'product_category']]))
                 ],
                 Response::HTTP_OK
             );

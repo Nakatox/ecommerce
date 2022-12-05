@@ -14,19 +14,19 @@ class OrderEntry
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['orderEntry'])]
+    #[Groups(['orderEntry', 'order_orderEntry'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[Groups(['orderEntry'])]
+    #[Groups(['orderEntry', 'order_orderEntry'])]
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
-    #[Groups(['orderEntry'])]
+    #[Groups(['orderEntry', 'order_orderEntry'])]
     #[ORM\Column]
     private ?int $price = null;
 
-    #[Groups(['orderEntry'])]
+    #[Groups(['orderEntry', 'order_orderEntry'])]
     #[ORM\Column(length: 255)]
     private ?string $category = null;
 

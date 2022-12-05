@@ -27,7 +27,6 @@ class PriceUpdateSubscriber implements EventSubscriberInterface
     public function onEntityChanged(GenericEvent $event)
     {
         $product = $event->getSubject();
-        return $event;
 
         if ($product instanceof Product) {
 
@@ -42,7 +41,6 @@ class PriceUpdateSubscriber implements EventSubscriberInterface
                     ->subject('Mise à jour du prix d\'un produit dans votre panier')
                     ->text('Le prix du produit ' . $product->getName() . ' dans votre panier a été mis à jour. Veuillez vérifier votre panier pour plus de détails.');
 
-                // Envoyer l'e-mail
                 $this->mailer->send($email);
             }
         }

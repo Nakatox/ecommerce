@@ -193,7 +193,7 @@ class CartController extends AbstractController
 
             return $this->json([
                 'message' => 'Cart validated',
-                'order' => json_decode($serializer->serialize($cart,'json' ,['groups' => ['cart_products', 'cart']]))
+                'order' => json_decode($serializer->serialize($order,'json' ,['groups' => ['order_orderEntry', 'order']]))
                 ],
                 Response::HTTP_OK
             );

@@ -22,11 +22,11 @@ class Cart
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    #[Groups(['cart'])]
+    #[Groups(['cart', 'client_cart'])]
     private ?int $totalAmount = null;
 
     #[ORM\ManyToMany(targetEntity: Product::class, inversedBy: 'carts')]
-    #[Groups(['cart_products'])]
+    #[Groups(['cart_products', 'client_cart'])]
     private Collection $products;
 
     #[ORM\OneToOne(inversedBy: 'cart', cascade: ['persist', 'remove'])]

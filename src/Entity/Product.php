@@ -16,19 +16,19 @@ class Product
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['product', 'cart_products'])]
+    #[Groups(['product', 'cart_products', 'client_cart', 'category_products'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[Groups(['product'])]
+    #[Groups(['product', 'category_products'])]
     #[ORM\Column(length: 255)]
     private ?string $slug = null;
 
-    #[Groups(['product', 'cart_products'])]
+    #[Groups(['product', 'cart_products', 'client_cart', 'category_products'])]
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
-    #[Groups(['product', 'cart_products'])]
+    #[Groups(['product', 'cart_products', 'client_cart', 'category_products'])]
     #[ORM\Column]
     private ?int $price = null;
 
@@ -36,7 +36,7 @@ class Product
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?Category $category = null;
 
-    #[Groups(['product'])]
+    #[Groups(['product', 'category_products'])]
     #[ORM\Column]
     private ?int $quantity = null;
 

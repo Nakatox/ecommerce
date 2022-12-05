@@ -14,15 +14,15 @@ class Address
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['address'])]
+    #[Groups(['address', 'client_addresses'])]
     #[ORM\Column(length: 255)]
     private ?string $street = null;
 
-    #[Groups(['address'])]
+    #[Groups(['address', 'client_addresses'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $postalCode = null;
 
-    #[Groups(['address'])]
+    #[Groups(['address', 'client_addresses'])]
     #[ORM\Column(length: 255)]
     private ?string $city = null;
 

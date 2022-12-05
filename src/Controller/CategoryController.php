@@ -75,7 +75,7 @@ class CategoryController extends AbstractController
 
         return $this->json([
             'message' => 'Category found',
-            'category' => json_decode($serializer->serialize($category,'json' ,['groups' => 'category', 'category_products']))
+            'category' => json_decode($serializer->serialize($category,'json' ,['groups' => ['category', 'category_products']]))
             ],
             Response::HTTP_OK
         );

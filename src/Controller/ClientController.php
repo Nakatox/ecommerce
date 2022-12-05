@@ -54,7 +54,7 @@ class ClientController extends AbstractController
 
         return $this->json([
             'message' => 'Client found',
-            'client' => json_decode($serializer->serialize($client,'json' ,['groups' => 'client']))
+            'client' => json_decode($serializer->serialize($client,'json' ,['groups' => ['client', 'client_addresses']]))
             ],
             Response::HTTP_OK
         );
@@ -122,7 +122,7 @@ class ClientController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Client added',
-                    'client' => json_decode($serializer->serialize($client,'json' ,['groups' => 'client']))
+                    'client' => json_decode($serializer->serialize($client,'json' ,['groups' => ['client', 'client_addresses']]))
                 ],
                 Response::HTTP_CREATED
             );
@@ -175,7 +175,7 @@ class ClientController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Client updated',
-                    'client' => json_decode($serializer->serialize($client,'json' ,['groups' => 'client']))
+                    'client' => json_decode($serializer->serialize($client,'json' ,['groups' => ['client', 'client_addresses']]))
                 ],
                 Response::HTTP_OK
             );
@@ -191,7 +191,7 @@ class ClientController extends AbstractController
     }
 
     #[Route('/{id}/cart', name: 'get_client_cart', methods: ['GET'])]
-    public function getClientCart(ClientRepository $clientRepository, int $id): JsonResponse
+    public function getClientCart(ClientRepository $clientRepository, SerializerInterface $serializer, int $id): JsonResponse
     {
         $client = $clientRepository->find($id);
 
@@ -206,7 +206,7 @@ class ClientController extends AbstractController
 
         return $this->json([
             'message' => 'Client found',
-            'cart' => $client->getCart()
+            'client' => json_decode($serializer->serialize($client,'json' ,['groups' => ['client', 'client_cart']]))
             ],
             Response::HTTP_OK
         );

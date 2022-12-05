@@ -18,7 +18,7 @@ class OrderController extends AbstractController
     {
         $order = $orderRepository->find($id);
 
-        if (empty($response)) {
+        if (empty($order)) {
             return $this->json(
                 [
                     'message' => 'Order not found'
@@ -29,7 +29,7 @@ class OrderController extends AbstractController
 
         return $this->json([
             'message' => 'Order found',
-            'order' => json_decode($serializer->serialize($order,'json' ,['groups' => 'order', 'order_entry']))
+            'order' => json_decode($serializer->serialize($order,'json' ,['groups' => ['order', 'order_orderEntry']]))
             ],
             Response::HTTP_OK
         );
@@ -53,7 +53,7 @@ class OrderController extends AbstractController
 
         return $this->json([
                 'message' => 'Orders found',
-                'orders' => json_decode($serializer->serialize($orders,'json' ,['groups' => 'order'])),
+                'orders' => json_decode($serializer->serialize($orders,'json' ,['groups' => ['order', 'order_orderEntry']])),
             ],
             Response::HTTP_OK
         );

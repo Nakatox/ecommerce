@@ -38,9 +38,16 @@ class SendBirthdayEmailsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $clients = $this->clientRepository->findAll()->map(function ($client) {
-            return $client->getBirthday()->format('m-d') === date('m-d');
-        })->toArray();
+        $clientsRepo = $this->clientRepository->findAll();
+        $clients = [];
+        foreach ($clientsRepo as $client) {
+            if ($client->getBirthDate() === null) {
+                continue;
+            }
+            if ($client->getBirthDate()->format('m-d') === (new \DateTime())->format('m-d')) {
+                $clients[] = $client;
+            }
+        }
 
         foreach ($clients as $client) {
             $email = (new Email())
