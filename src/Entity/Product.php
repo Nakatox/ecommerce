@@ -16,31 +16,31 @@ class Product
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Assert\Type('string')]
-    #[Groups(['default'])]
+    #[Groups(['product', 'cart_products'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[Groups(['default'])]
+    #[Groups(['product'])]
     #[ORM\Column(length: 255)]
     private ?string $slug = null;
 
-    #[Groups(['default'])]
+    #[Groups(['product', 'cart_products'])]
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
-    #[Groups(['default'])]
+    #[Groups(['product', 'cart_products'])]
     #[ORM\Column]
     private ?int $price = null;
 
-    #[Groups(['default'])]
+    #[Groups(['product_category'])]
     #[ORM\ManyToOne(inversedBy: 'products')]
     private ?Category $category = null;
 
-    #[Groups(['default'])]
+    #[Groups(['product'])]
     #[ORM\Column]
     private ?int $quantity = null;
 
+    #[Groups(['product_carts'])]
     #[ORM\ManyToMany(targetEntity: Cart::class, mappedBy: 'products')]
     private Collection $carts;
 

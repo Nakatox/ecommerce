@@ -14,19 +14,19 @@ class Address
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['default'])]
+    #[Groups(['address'])]
     #[ORM\Column(length: 255)]
     private ?string $street = null;
 
-    #[Groups(['default'])]
+    #[Groups(['address'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $postalCode = null;
 
-    #[Groups(['default'])]
+    #[Groups(['address'])]
     #[ORM\Column(length: 255)]
     private ?string $city = null;
 
-    #[Groups(['default'])]
+    #[Groups(['address_client'])]
     #[ORM\ManyToOne(inversedBy: 'addresses')]
     private ?Client $client = null;
 

@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: '`order`')]
@@ -18,25 +19,32 @@ class Order
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['order'])]
     private ?string $number = null;
 
     #[ORM\Column]
+    #[Groups(['order'])]
     private ?int $totalAmount = null;
 
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['order_client'])]
     private ?Client $client = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['order'])]
     private ?string $addressFacturation = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['order'])]
     private ?string $addressDelivery = null;
 
     #[ORM\OneToMany(mappedBy: 'orderRelate', targetEntity: OrderEntry::class, orphanRemoval: true)]
+    #[Groups(['order_orderEntry'])]
     private Collection $orderEntry;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['order'])]
     private ?\DateTimeInterface $created_at = null;
 
     public function __construct()

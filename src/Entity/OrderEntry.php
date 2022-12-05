@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\OrderEntryRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: OrderEntryRepository::class)]
 class OrderEntry
@@ -13,18 +14,23 @@ class OrderEntry
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['orderEntry'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    #[Groups(['orderEntry'])]
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
+    #[Groups(['orderEntry'])]
     #[ORM\Column]
     private ?int $price = null;
 
+    #[Groups(['orderEntry'])]
     #[ORM\Column(length: 255)]
     private ?string $category = null;
 
+    #[Groups(['orderEntry_order'])]
     #[ORM\ManyToOne(inversedBy: 'orderEntry')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Order $orderRelate = null;

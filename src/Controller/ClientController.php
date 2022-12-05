@@ -11,16 +11,17 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/client')]
 class ClientController extends AbstractController
 {
     #[Route('/', name: 'get_clients', methods: ['GET'])]
-    public function getAllClients(ClientRepository $clientRepository): JsonResponse
+    public function getAllClients(ClientRepository $clientRepository, SerializerInterface $serializer): JsonResponse
     {
-        $response = $clientRepository->findAll();
+        $clients = $clientRepository->findAll();
 
-        if (empty($response)) {
+        if (empty($clients)) {
             return $this->json(
                 [
                     'message' => 'No clients found'
@@ -31,29 +32,29 @@ class ClientController extends AbstractController
 
         return $this->json([
                 'message' => 'Clients found',
-                'clients' => $response,
+                'clients' => json_decode($serializer->serialize($clients,'json' ,['groups' => 'client']))
             ],
             Response::HTTP_OK
         );
     }
 
     #[Route('/{id}', name: 'get_client', methods: ['GET'])]
-    public function getClient(ClientRepository $clientRepository, int $id): JsonResponse
+    public function getClient(ClientRepository $clientRepository, SerializerInterface $serializer, int $id): JsonResponse
     {
-        $response = $clientRepository->find($id);
+        $client = $clientRepository->find($id);
 
-        if (empty($response)) {
+        if (empty($client)) {
             return $this->json(
                 [
                     'message' => 'Client not found'
                 ],
-                404
+                Response::HTTP_OK
             );
         }
 
         return $this->json([
             'message' => 'Client found',
-            'client' => $response
+            'client' => json_decode($serializer->serialize($client,'json' ,['groups' => 'client']))
             ],
             Response::HTTP_OK
         );
@@ -80,7 +81,8 @@ class ClientController extends AbstractController
         } catch (\Exception $e) {
             return $this->json(
                 [
-                    'message' => 'Error deleting client'
+                    'message' => 'Error deleting client',
+                    'error' => $e->getMessage()
                 ],
                 500
             );
@@ -88,7 +90,7 @@ class ClientController extends AbstractController
     }
 
     #[Route('/', name: 'add_client', methods: ['POST'])]
-    public function addClient(Request $request, ClientRepository $clientRepository, CartRepository $cartRepository): JsonResponse
+    public function addClient(Request $request, ClientRepository $clientRepository, CartRepository $cartRepository, SerializerInterface $serializer): JsonResponse
     {
         $client = new Client();
         $form = $this->createForm(
@@ -120,10 +122,7 @@ class ClientController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Client added',
-                    'client' => [
-                        'name' => $client->getFirstName(),
-                        'email' => $client->getEmail(),
-                    ]
+                    'client' => json_decode($serializer->serialize($client,'json' ,['groups' => 'client']))
                 ],
                 Response::HTTP_CREATED
             );
@@ -139,7 +138,7 @@ class ClientController extends AbstractController
     }
 
     #[Route('/{id}', name: 'update_client', methods: ['PUT'])]
-    public function updateClient(Request $request, ClientRepository $clientRepository, int $id): JsonResponse
+    public function updateClient(Request $request, ClientRepository $clientRepository, SerializerInterface $serializer, int $id): JsonResponse
     {
         $client = $clientRepository->find($id);
 
@@ -176,12 +175,7 @@ class ClientController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Client updated',
-                    'client' => [
-                        'name' => $client->getFirstName(),
-                        'lastname' => $client->getLastName(),
-                        'birthdate' => $client->getBirthDate(),
-                        'email' => $client->getEmail(),
-                    ]
+                    'client' => json_decode($serializer->serialize($client,'json' ,['groups' => 'client']))
                 ],
                 Response::HTTP_OK
             );

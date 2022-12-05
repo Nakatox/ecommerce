@@ -8,12 +8,13 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/order')]
 class OrderController extends AbstractController
 {
     #[Route('/{id}', name: 'get_order', methods: ['GET'])]
-    public function getOrder(OrderRepository $orderRepository, int $id): JsonResponse
+    public function getOrder(OrderRepository $orderRepository, SerializerInterface $serializer, int $id): JsonResponse
     {
         $order = $orderRepository->find($id);
 
@@ -28,15 +29,14 @@ class OrderController extends AbstractController
 
         return $this->json([
             'message' => 'Order found',
-            'order' => $order
+            'order' => json_decode($serializer->serialize($order,'json' ,['groups' => 'order', 'order_entry']))
             ],
             Response::HTTP_OK
         );
     }
 
-    //client id as query param
     #[Route('', name: 'get_orders', methods: ['GET'])]
-    public function getOrders(OrderRepository $orderRepository, Request $request): JsonResponse
+    public function getOrders(OrderRepository $orderRepository, Request $request, SerializerInterface $serializer): JsonResponse
     {
         $clientId = $request->query->get('client_id');
 
@@ -53,7 +53,7 @@ class OrderController extends AbstractController
 
         return $this->json([
                 'message' => 'Orders found',
-                'orders' => $orders,
+                'orders' => json_decode($serializer->serialize($orders,'json' ,['groups' => 'order'])),
             ],
             Response::HTTP_OK
         );

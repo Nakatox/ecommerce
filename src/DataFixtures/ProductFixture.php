@@ -10,17 +10,19 @@ class ProductFixture extends Fixture
 {
     public function load(ObjectManager $manager): void
     {
-        $faker = \Faker\Factory::create('fr_FR');
-
         for ($i = 0; $i < 10; $i++) {
             $product = new Product();
-            $product->setName($faker->word);
-            $product->setQuantity($faker->numberBetween(0, 100));
-            $product->setPrice($faker->numberBetween(0, 1000));
-            $product->setDescription($faker->paragraph);
-            $product->setCategory($this->getReference('category_' . $faker->numberBetween(0, 9)));
+            $product->setName('product ' . $i);
+            $product->setQuantity(rand(1, 100));
+            $product->setPrice(rand(1, 100));
+            $product->setDescription('description ' . $i);
+            $product->setCategory($this->getReference('category_' . rand(0, 9)));
+            $product->setSlug('name ' . $i . '-' . uniqid());
 
             $manager->persist($product);
+
+
+            $this->addReference('product_' . $i, $product);
         }
 
         $manager->flush();

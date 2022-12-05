@@ -18,29 +18,31 @@ class Client
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Groups(['default'])]
+    #[Groups(['client'])]
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
-    #[Groups(['default'])]
+    #[Groups(['client'])]
     #[ORM\Column(length: 255)]
     private ?string $firstName = null;
 
-    #[Groups(['default'])]
+    #[Groups(['client'])]
     #[ORM\Column(length: 255)]
     private ?string $email = null;
 
-    #[Groups(['default'])]
+    #[Groups(['client'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $birthDate = null;
 
-    #[Groups(['default'])]
+    #[Groups(['client_addresses'])]
     #[ORM\OneToMany(mappedBy: 'client', targetEntity: Address::class, cascade: ['persist'], orphanRemoval: true)]
     private Collection $addresses;
 
+    #[Groups(['client_cart'])]
     #[ORM\OneToOne(mappedBy: 'client', cascade: ['persist', 'remove'])]
     private ?Cart $cart = null;
 
+    #[Groups(['client_orders'])]
     #[ORM\OneToMany(mappedBy: 'client', targetEntity: Order::class)]
     private Collection $orders;
 

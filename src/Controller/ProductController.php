@@ -11,17 +11,18 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/product')]
 class ProductController extends AbstractController
 {
     #[Route('/', name: 'get_products', methods: ['GET'])]
-    public function getAllProducts(ProductRepository $productRepository): JsonResponse
+    public function getAllProducts(ProductRepository $productRepository, SerializerInterface $serializer): JsonResponse
     {
 
-        $response = $productRepository->findAll();
+        $product = $productRepository->findAll();
 
-        if (empty($response)) {
+        if (empty($product)) {
             return $this->json(
                 [
                     'message' => 'No products found'
@@ -32,19 +33,19 @@ class ProductController extends AbstractController
 
         return $this->json([
                 'message' => 'Products found',
-                'products' => $response,
+                'products' => json_decode($serializer->serialize($product,'json' ,['groups' => 'product']))
             ],
             Response::HTTP_OK
         );
     }
 
     #[Route('/{id}', name: 'get_product', methods: ['GET'])]
-    public function getProduct(ProductRepository $productRepository, int $id): JsonResponse
+    public function getProduct(ProductRepository $productRepository, SerializerInterface $serializer, int $id): JsonResponse
     {
 
-        $response = $productRepository->find($id);
+        $product = $productRepository->find($id);
 
-        if (empty($response)) {
+        if (empty($product)) {
             return $this->json(
                 [
                     'message' => 'Product not found'
@@ -55,13 +56,13 @@ class ProductController extends AbstractController
 
         return $this->json([
             'message' => 'Product found',
-            'product' => $response
+            'product' => json_decode($serializer->serialize($product,'json' ,['groups' => 'product']))
             ]
         );
     }
 
     #[Route('/{id}', name: 'delete_product', methods: ['DELETE'])]
-    public function deleteProduct(ProductRepository $productRepository, Request $request, int $id): JsonResponse
+    public function deleteProduct(ProductRepository $productRepository, int $id): JsonResponse
     {
         $product = $productRepository->find($id);
 
@@ -84,7 +85,7 @@ class ProductController extends AbstractController
     }
 
     #[Route('/', name: 'create_product', methods: ['POST'])]
-    public function createProduct(ProductRepository $productRepository, Request $request, CategoryRepository $categoryRepository): JsonResponse
+    public function createProduct(ProductRepository $productRepository, Request $request, SerializerInterface $serializer): JsonResponse
     {
 
         $data = json_decode($request->getContent(), true);
@@ -115,12 +116,7 @@ class ProductController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Product created',
-                    'product' => [
-                        'name' => $product->getName(),
-                        'description' => $product->getDescription(),
-                        'price' => $product->getPrice(),
-                        'slug' => $product->getSlug(),
-                    ]
+                    'product' => json_decode($serializer->serialize($product,'json' ,['groups' => 'product']))
                 ],
                 Response::HTTP_CREATED
             );
@@ -137,7 +133,7 @@ class ProductController extends AbstractController
     }
 
     #[Route('/{id}', name: 'update_product', methods: ['PUT'])]
-    public function updateProduct(ProductRepository $productRepository, Request $request, CategoryRepository $categoryRepository, int $id): JsonResponse
+    public function updateProduct(ProductRepository $productRepository, Request $request, SerializerInterface $serializer, int $id): JsonResponse
     {
         $product = $productRepository->find($id);
 
@@ -174,13 +170,7 @@ class ProductController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Product updated',
-                    'product' =>
-                        [
-                            'name' => $product->getName(),
-                            'description' => $product->getDescription(),
-                            'price' => $product->getPrice(),
-                            'slug' => $product->getSlug(),
-                        ]
+                    'product' => json_decode($serializer->serialize($product,'json' ,['groups' => 'product']))
                 ],
                 Response::HTTP_OK
             );

@@ -10,16 +10,17 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/category')]
 class CategoryController extends AbstractController
 {
     #[Route('/', name: 'get_categories', methods: ['GET'])]
-    public function getAllCategories(CategoryRepository $categoryRepository): JsonResponse
+    public function getAllCategories(CategoryRepository $categoryRepository, SerializerInterface $serializer): JsonResponse
     {
-        $response = $categoryRepository->findAll();
+        $categories = $categoryRepository->findAll();
 
-        if (empty($response)) {
+        if (empty($categories)) {
             return $this->json(
                 [
                     'message' => 'No categories found'
@@ -30,18 +31,18 @@ class CategoryController extends AbstractController
 
         return $this->json([
                 'message' => 'Categories found',
-                'categories' => $response,
+                'categories' => json_decode($serializer->serialize($categories,'json' ,['groups' => 'category'])),
             ],
             Response::HTTP_OK
         );
     }
 
     #[Route('/{id}', name: 'get_category', methods: ['GET'])]
-    public function getCategory(CategoryRepository $categoryRepository, int $id): JsonResponse
+    public function getCategory(CategoryRepository $categoryRepository, SerializerInterface $serializer, int $id): JsonResponse
     {
-        $response = $categoryRepository->find($id);
+        $category = $categoryRepository->find($id);
 
-        if (empty($response)) {
+        if (empty($category)) {
             return $this->json(
                 [
                     'message' => 'Category not found'
@@ -52,18 +53,18 @@ class CategoryController extends AbstractController
 
         return $this->json([
             'message' => 'Category found',
-            'category' => $response
+            'category' => json_decode($serializer->serialize($category,'json' ,['groups' => 'category']))
             ],
             Response::HTTP_OK
         );
     }
 
     #[Route('/{id}/products', name: 'get_category_products', methods: ['GET'])]
-    public function getCategoryProducts(CategoryRepository $categoryRepository, int $id): JsonResponse
+    public function getCategoryProducts(CategoryRepository $categoryRepository, SerializerInterface $serializer, int $id): JsonResponse
     {
-        $response = $categoryRepository->find($id);
+        $category = $categoryRepository->find($id);
 
-        if (empty($response)) {
+        if (empty($category)) {
             return $this->json(
                 [
                     'message' => 'Category not found'
@@ -74,8 +75,7 @@ class CategoryController extends AbstractController
 
         return $this->json([
             'message' => 'Category found',
-            'category' => $response,
-            'products' => $response->getProducts()
+            'category' => json_decode($serializer->serialize($category,'json' ,['groups' => 'category', 'category_products']))
             ],
             Response::HTTP_OK
         );
@@ -83,7 +83,7 @@ class CategoryController extends AbstractController
 
     // create a new category
     #[Route('/', name: 'create_category', methods: ['POST'])]
-    public function createCategory(Request $request, CategoryRepository $categoryRepository): JsonResponse
+    public function createCategory(Request $request, CategoryRepository $categoryRepository, SerializerInterface $serializer): JsonResponse
     {
 
         $category = new Category();
@@ -112,9 +112,7 @@ class CategoryController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Category created',
-                    'category' => [
-                        'name' => $category->getName()
-                    ]
+                    'category' => json_decode($serializer->serialize($category,'json' ,['groups' => 'category']))
                 ],
                 Response::HTTP_CREATED
             );
@@ -130,7 +128,7 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/{id}', name: 'update_category', methods: ['PUT'])]
-    public function updateCategory(Request $request, CategoryRepository $categoryRepository, int $id): JsonResponse
+    public function updateCategory(Request $request, CategoryRepository $categoryRepository, SerializerInterface $serializer, int $id): JsonResponse
     {
         $category = $categoryRepository->find($id);
 
@@ -167,7 +165,7 @@ class CategoryController extends AbstractController
             return $this->json(
                 [
                     'message' => 'Category updated',
-                    'category' => $category
+                    'category' => json_decode($serializer->serialize($category,'json' ,['groups' => 'category']))
                 ],
                 Response::HTTP_OK
             );

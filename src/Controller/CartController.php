@@ -12,12 +12,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/cart')]
 class CartController extends AbstractController
 {
     #[Route('/{cart_id}/product/{product_id}/add-to-cart', name: 'add_to_cart', methods: ['PATCH'])]
-    public function addToCart(CartRepository $cartRepository, ProductRepository $productRepository, int $cart_id, int $product_id): JsonResponse
+    public function addToCart(CartRepository $cartRepository, ProductRepository $productRepository, SerializerInterface $serializer, int $cart_id, int $product_id): JsonResponse
     {
         $cart = $cartRepository->find($cart_id);
         $product = $productRepository->find($product_id);
@@ -35,6 +36,7 @@ class CartController extends AbstractController
             $product->setQuantity($product->getQuantity() - 1);
             $cart->setTotalAmount($cart->getTotalAmount() + $product->getPrice());
             $cart->addProduct($product);
+            $cart->setLastTimeUpdated(new \DateTime());
 
             try {
 
@@ -42,7 +44,8 @@ class CartController extends AbstractController
             $productRepository->save($product, true);
 
             return $this->json([
-                'message' => 'Product added to cart',
+                    'message' => 'Product added to cart',
+                    'cart' => json_decode($serializer->serialize($cart,'json' ,['groups' => ['cart_products', 'cart']]))
                 ],
                 Response::HTTP_OK
             );
@@ -67,7 +70,7 @@ class CartController extends AbstractController
 
 
     #[Route('/{cart_id}/product/{product_id}/remove-from-cart', name: 'remove_from_cart', methods: ['PATCH'])]
-    public function removeFromCart(CartRepository $cartRepository, ProductRepository $productRepository, int $cart_id, int $product_id): JsonResponse
+    public function removeFromCart(CartRepository $cartRepository, ProductRepository $productRepository, SerializerInterface $serializer, int $cart_id, int $product_id): JsonResponse
     {
         $cart = $cartRepository->find($cart_id);
         $product = $productRepository->find($product_id);
@@ -84,6 +87,7 @@ class CartController extends AbstractController
         $product->setQuantity($product->getQuantity() + 1);
         $cart->setTotalAmount($cart->getTotalAmount() - $product->getPrice());
         $cart->removeProduct($product);
+        $cart->setLastTimeUpdated(new \DateTime());
 
         try {
 
@@ -91,10 +95,8 @@ class CartController extends AbstractController
             $productRepository->save($product, true);
 
             return $this->json([
-                'message' => 'Product removed from cart',
-                'cart' => [
-                        'products' => $cart->getProducts()
-                    ]
+                    'message' => 'Product removed from cart',
+                    'cart' => json_decode($serializer->serialize($cart,'json' ,['groups' => ['cart_products', 'cart']]))
                 ],
                 Response::HTTP_OK
             );
@@ -123,10 +125,16 @@ class CartController extends AbstractController
         }
 
         try {
-            $cartRepository->remove($cart, true);
+            $cart->setTotalAmount(0);
+            $products = $cart->getProducts();
+            foreach ($products as $product) {
+                $cart->removeProduct($product);
+            }
+            $cart->setLastTimeUpdated(new \DateTime());
+            $cartRepository->save($cart, true);
 
             return $this->json([
-                'message' => 'Cart deleted',
+                'message' => 'Cart cleared',
                 ],
                 Response::HTTP_OK
             );
@@ -141,7 +149,7 @@ class CartController extends AbstractController
     }
 
     #[Route('/{cart_id}/validate', name: 'validate_cart', methods: ['PATCH'])]
-    public function validateCart(CartRepository $cartRepository, OrderRepository $orderRepository, OrderEntryRepository $entryRepository, int $cart_id): JsonResponse
+    public function validateCart(CartRepository $cartRepository, OrderRepository $orderRepository, OrderEntryRepository $entryRepository, SerializerInterface $serializer, int $cart_id): JsonResponse
     {
         $cart = $cartRepository->find($cart_id);
 
@@ -156,39 +164,44 @@ class CartController extends AbstractController
 
         $order = new Order();
         $order->setTotalAmount($cart->getTotalAmount());
-        $order->setCreatedAt(new \DateTime());
+        $order->setCreatedAt(new \DateTimeImmutable());
         $order->setNumber(uniqid());
-        $order->setAddressDelivery($cart->getClient()->getAddresses()->first());
-        $order->setAddressFacturation($cart->getClient()->getAddresses()->first());
+        $address = $cart->getClient()->getAddresses()->first();
+        $addressString = $address->getStreet() . ' ' . $address->getCity() . ' ' .$address->getPostalCode();
+        $order->setAddressDelivery($addressString);
+        $order->setAddressFacturation($addressString);
+        $order->setClient($cart->getClient());
 
         foreach ($cart->getProducts() as $product) {
             $entry = new OrderEntry();
             $entry->setName($product->getName());
             $entry->setPrice($product->getPrice());
-            $entry->setCategory($product->getCategory());
+            $entry->setCategory($product->getCategory()->getName());
+            $entry->setDescription($product->getDescription());
             $entry->setOrderRelate($order);
             $entryRepository->save($entry, false);
         }
 
         try {
+            $cart->setTotalAmount(0);
+            $products = $cart->getProducts();
+            foreach ($products as $product) {
+                $cart->removeProduct($product);
+            }
+            $cartRepository->save($cart, true);
             $orderRepository->save($order, true);
 
             return $this->json([
                 'message' => 'Cart validated',
-                'order' => [
-                    'number' => $order->getNumber(),
-                    'total_amount' => $order->getTotalAmount(),
-                    'address_delivery' => $order->getAddressDelivery(),
-                    'address_facturation' => $order->getAddressFacturation(),
-                    'entries' => $order->getOrderEntry()
-                ]
+                'order' => json_decode($serializer->serialize($cart,'json' ,['groups' => ['cart_products', 'cart']]))
                 ],
                 Response::HTTP_OK
             );
         } catch (\Exception $e) {
             return $this->json(
                 [
-                    'message' => 'Error validating cart'
+                    'message' => 'Error validating cart',
+                    'error' => $e->getMessage()
                 ],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
